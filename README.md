@@ -70,30 +70,39 @@ Wird die Statistikseite im Plugin aktiviert, kann zusätzlich eine erweiterte Ra
 
 ### zuletzt gewobbte Charaktere
 Das Plugin bietet die Möglichkeit, eine frei definierbare Anzahl an zuletzt angenommenen bzw. "gewobbten" Charakteren auf dem Index anzuzeigen - ganz einfach über die Variable ```{$rpgstatistic_wob}```.<br>
-Voraussetzung für diese Funktion ist, dass es in der Datenbanktabelle ```users``` eine Spalte gibt, in der das WoB-Datum (also das Datum der Annahme) gespeichert ist. Gängige Spaltennamen sind zum Beispiel:
+Voraussetzung für diese Funktion ist, dass es in der Datenbanktabelle ```users``` eine Spalte gibt, in der das WoB-Datum (also das Datum der Annahme) gespeichert ist. Der Spaltenname lässt sich flexibel in den Plugin-Einstellungen hinterlegen. Gängige Spaltennamen sind zum Beispiel:
 - ```wob_date``` (<a href="https://github.com/katjalennartz/application_ucp" target="_blank">Steckbriefe im UCP - risuena</a>)
 - ```wobSince``` (<a href="https://github.com/aheartforspinach/Whitelist">Whitelist 2.0 - aheartforspinach</a>)
-- ```wobdate``` (<a href="https://github.com/Ales12/applicationoverview">Bewerberübersicht - Ales</a>)
-Der Spaltenname lässt sich flexibel in den Plugin-Einstellungen hinterlegen.<br>
-<br>
-Die Ausgabe erfolgt standardmäßig einfach gehalten mit dem Accountnamen und dem klassischen Avatar des Charakters. Sie kann jedoch vollständig angepasst werden: Sämtliche Daten aus den Datenbanktabelle ```users``` , Profilfelder sowie aus den Plugins Steckbrieffelder und <a href="https://github.com/little-evil-genius/Upload-System" target="_blank">Uploadelemente</a> stehen zur Verfügung. Die Ausgabe einzelner Felder erfolgt über ```{$character['xx']}```, wobei xx je nach Quelle ersetzt werden muss:
+- ```wobdate``` (<a href="https://github.com/Ales12/applicationoverview">Bewerberübersicht - Ales</a>)<br>
+
+Die Ausgabe erfolgt standardmäßig einfach gehalten mit dem Accountnamen und dem klassischen Avatar des Charakters. Sie kann jedoch vollständig angepasst werden: Sämtliche Daten aus den Datenbanktabelle ```users```, Profilfelder sowie aus den Plugins Steckbrieffelder und <a href="https://github.com/little-evil-genius/Upload-System" target="_blank">Uploadelemente</a> stehen zur Verfügung. Die Ausgabe einzelner Felder erfolgt über ```{$character['xx']}```, wobei xx je nach Quelle ersetzt werden muss:
+<br><br>
+
 - ```users```-Tabelle: Name der jeweiligen Spalte
 - Profilfelder: fidX (wobei X die FID-Nummer ist)
 - Steckbrieffelder: Identifikator des Feldes
 - Uploadelemente: Identifikator des Elements
-Der Avatar der zuletzt gewobbten Charaktere kann über die Variable ```{$avatarUrl}``` eingebunden werden - hierbei handelt es sich um die reine URL. Wenn der klassische Avatar - beim Uploadsystem passiert dies automatisch - genutzt wird, besteht zusätzlich die Möglichkeit, diesen vor Gästen auszublenden, auch wenn Gäste grundsätzlich Zugriff auf die Anzeige der zuletzt angenommenen Charaktere haben. In solchen Fällen kann automatisch eine Standardgrafik als Platzhalter angezeigt werden.<br>
+<br>
+Der Avatar der zuletzt gewobbten Charaktere kann über die Variable ```{$avatarUrl}``` eingebunden werden - hierbei handelt es sich um die reine URL. Wenn der klassische Avatar - beim Uploadsystem passiert dies automatisch - genutzt wird, besteht zusätzlich die Möglichkeit, diesen vor Gästen auszublenden, auch wenn Gäste grundsätzlich Zugriff auf die Anzeige der zuletzt angenommenen Charaktere haben. In solchen Fällen kann automatisch eine Standardgrafik als Platzhalter angezeigt werden.<br><br>
+
 Für die Darstellung des Charakternamens gibt es mehrere Möglichkeiten:
 - Nur Gruppenfarbe: ```{$characternameFormatted}```
 - Nur als Profil-Link: ```{$characternameLink}```
 - Gruppenfarbe + Link kombiniert: ```{$characternameFormattedLink}```
-- Getrennt als Vor- und Nachname: ```{$characternameFirst} & {$characternameLast}``` (Profilverlinkung über die UID mit ```{$uid}``` möglich)
-<br>
-Optional lässt sich die Anzeige der zuletzt gewobbten Charaktere auch zwischen den Foren anzeigen. Hierfür wird in den Einstellungen ein Foren bzw. Kategorien ausgewählt. Die Ausgabe erfolgt dann über die Variable ```{$forum['rpgstatistic_wob']}```, die in das Template forumbit_depth1_cat oder forumbit_depth2_forum eingefügt werden muss.<br>
+- Getrennt als Vor- und Nachname: ```{$characternameFirst} & {$characternameLast}``` (Profilverlinkung über die UID mit ```{$uid}``` möglich)<br>
+
+Optional lässt sich die Anzeige der zuletzt gewobbten Charaktere auch zwischen den Foren anzeigen. Hierfür wird in den Einstellungen ein Foren bzw. Kategorien ausgewählt. Die Ausgabe erfolgt dann über die Variable ```{$forum['rpgstatistic_wob']}```, die in das Template forumbit_depth1_cat oder forumbit_depth2_forum eingefügt werden muss.
+<br><br>
 <b>Wichtig:</b> Diese Anzeige ist ausschließlich für den Indexbereich vorgesehen und nicht global einsetzbar.
 
 ### Neuste Themen/Beiträge
+Mit der Variable ```{$rpgstatistic_overviewtable}``` lässt sich auf dem Index eine übersichtliche Tabelle anzeigen, die eine bestimmte Anzahl an kürzlich erstellten Themen und/oder Beiträgen im Forum auflistet. Die Anzahl der Einträge kann in den Einstellungen individuell festgelegt werden. Zudem lässt sich genau bestimmen, aus welchen Forenbereichen die Inhalte stammen sollen - von gezielten Unterforen bis hin zum gesamten Forum. Selbstverständlich wird dabei die Sichtbarkeit nach Benutzergruppen berücksichtigt: Es werden nur Inhalte angezeigt, die der*die jeweilige Nutzer:in laut Forenberechtigungen sehen - nicht unbedingt lesen kann - hat.<br>
+In den Einstellungen kann auch gewählt werden, ob nur neue Themen, nur neue Beiträge oder beides angezeigt werden soll. Bei der gleichzeitigen Anzeige von Themen und Beiträgen gibt es zusätzlich die Möglichkeit, ob diese gemeinsam in einer Tabelle oder getrennt voneinander dargestellt werden sollen.
+<br><br>
+<b>Wichtig:</b> Diese Anzeige ist ausschließlich für den Indexbereich vorgesehen und nicht global einsetzbar.
 
 ### Statistikseite
+Das Plugin bringt eine vollständig vorbereitete Statistikseite mit, auf der alle Statistikwerte zentral ausgegeben werden - mit Ausnahme der Anzeige der zuletzt angenommenen Charaktere sowie der Tabelle mit den neuesten Themen und Beiträgen. Diese Seite kann frei gestaltet und bei Bedarf erweitert werden. Darüber hinaus können alle Statistikwerte, die global verfügbar sind, auch innerhalb dieser Seite individuell eingebunden und angesprochen werden. Für die Anzeige des Top-Inplaypost-Rankings wird die Variable ```{$topstatistic}``` verwendet.
 
 # Vorrausetzung
 - Das ACP Modul <a href="https://github.com/little-evil-genius/rpgstuff_modul" target="_blank">RPG Stuff</a> <b>muss</b> vorhanden sein.
