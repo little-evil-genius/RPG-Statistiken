@@ -26,6 +26,7 @@ $l['rpgstatistic_page_top_range_topUserDay'] = "Top {1} - Spieler:innen von heut
 $l['rpgstatistic_page_top_range_topCharacter'] = "Top {1} - Charaktere insgesamt";
 $l['rpgstatistic_page_top_range_topCharacterMonth'] = "Top {1} - Charaktere diesen Monat";
 $l['rpgstatistic_page_top_range_topCharacterDay'] = "Top {1} - Charaktere von heute";
+$l['rpgstatistic_page_top_range_characterPlayer'] = "{1} ({2})";
 $l['rpgstatistic_page_top_single_topUser'] = "Top-Spieler:in insgesamt";
 $l['rpgstatistic_page_top_single_topUserMonth'] = "Top-Spieler:in diesen Monat";
 $l['rpgstatistic_page_top_single_topUserDay'] = "Top-Spieler:in heute";
