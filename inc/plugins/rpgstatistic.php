@@ -3928,7 +3928,7 @@ function rpgstatistic_settings($type = 'install') {
 		'rpgstatistic_wobUser_forumbit' => array(
 			'title' => 'Zwischen den Foren',
             'description' => 'Wenn die Option bestehen soll, die zuletzt gewobbten Accounts auch zwischden den Foren anzeigen zulassen muss hier das entsprechende Forum ausgewählt werden.',
-            'optionscode' => 'forumselect',
+            'optionscode' => 'forumselectsingle',
             'value' => '-1', // Default
             'disporder' => 13
 		),
