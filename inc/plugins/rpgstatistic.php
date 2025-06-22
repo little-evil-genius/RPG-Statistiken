@@ -27,8 +27,8 @@ function rpgstatistic_info()
 {
 	return array(
 		"name"		=> "RPG-Statistiken",
-		"description"	=> "Pluginbeschreibung",
-		"website"	=> "Webseite des Plugins (Herstellerseite)",
+		"description"	=> "Erweitert das Forum um verschiedene global einsetzbare Statistikwerte.",
+		"website"	=> "https://github.com/little-evil-genius/RPG-Statistiken",
 		"author"	=> "little.evil.genius",
 		"authorsite"	=> "https://storming-gates.de/member.php?action=profile&uid=1712",
 		"version"	=> "1.0",
