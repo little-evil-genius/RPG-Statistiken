@@ -1863,27 +1863,24 @@ function rpgstatistic_misc() {
         // Forengeburtstag
         $forumbirthday = "";
         if (!empty($mybb->settings['rpgstatistic_forumbirthday'])) {
-            $birthdayData = rpgstatistic_forumbirthday();
-            $onlyDays = $birthdayData['forumbirthday_days'];
-            $fullDate = $birthdayData['forumbirthday_fullDate'];
-            $forumbirthdayDate = $mybb->settings['rpgstatistic_forumbirthday'];
+            $onlyDays = $mybb->rpgstatistic['forumbirthday_days'];
+            $fullDate = $mybb->rpgstatistic['forumbirthday_fullDate'];
+            $forumbirthdayDate = $mybb->rpgstatistic['forumbirthday'];
             eval("\$forumbirthday = \"".$templates->get("rpgstatistic_page_forumbirthday")."\";");
         }
 
         // Userstatistik
-        $userData = rpgstatistic_userstatistic();
-        $countPlayer = $userData['countPlayer'];
-        $countCharacter = $userData['countCharacter'];
-        $averageCharacter = $userData['averageCharacter'];
+        $countPlayer = $mybb->rpgstatistic['countPlayer'];
+        $countCharacter = $mybb->rpgstatistic['countCharacter'];
+        $averageCharacter = $mybb->rpgstatistic['averageCharacter'];
 
         // Inplaystatistik
-        $inplayData = rpgstatistic_inplaystatistic();
-        $inplayscenes = $inplayData['inplayscenes'];
-        $inplayposts = $inplayData['inplayposts'];
-        $allCharacters = $inplayData['allCharacters'];
-        $averageCharacters = $inplayData['averageCharacters'];
-        $allWords = $inplayData['allWords'];
-        $averageWords = $inplayData['averageWords'];
+        $inplayscenes = $mybb->rpgstatistic['inplayscenes'];
+        $inplayposts = $mybb->rpgstatistic['inplayposts'];
+        $allCharacters = $mybb->rpgstatistic['allCharacters'];
+        $averageCharacters = $mybb->rpgstatistic['averageCharacters'];
+        $allWords = $mybb->rpgstatistic['allWords'];
+        $averageWords = $mybb->rpgstatistic['averageWords'];
 
         // Topstatistik
         $topstatistic = "";
@@ -1951,12 +1948,10 @@ function rpgstatistic_misc() {
                     "topCharacterDay" => $lang->rpgstatistic_page_top_single_topCharacterDay, 
                 ];
 
-                $topData = rpgstatistic_topstatistic();
-
                 $topOption = "";
                 foreach ($selected_topoptions as $option) {
 
-                    $optionData = $topData[$option];
+                    $optionData = $mybb->rpgstatistic[$option];
                     $optionName = $topOptions[$option];
 
                     eval("\$topOption .= \"".$templates->get("rpgstatistic_page_top_single_bit")."\";");
@@ -2487,6 +2482,7 @@ function rpgstatistic_forumbirthday() {
     $fullDate = $yearText.", ".$monthText." und ".$dayText;
 
     $birthday_array = [
+        "forumbirthday" => $mybb->settings['rpgstatistic_forumbirthday'],
         "forumbirthday_days" => $days,
         "forumbirthday_fullDate" => $fullDate    
     ];
@@ -3878,8 +3874,8 @@ function rpgstatistic_settings($type = 'install') {
 		),
 		'rpgstatistic_top_option' => array(
 			'title' => 'Top-Inplaypost Optionen',
-            'description' => 'Wähle aus, welche Top-Inplaypostwerte angezeigt werden sollen. Nach Spieler:in oder Charakter, jeweils gesamt, im aktuellen Monat oder am aktuellen Tag.',
-            'optionscode' => 'checkbox\ntopUser=Top-Spieler:in gesamt\ntopUserMonth=Top-Spieler:in Monat\ntopUserDay=Top-Spieler:in Tag\ntopCharacter=Top-Charakter gesamt\ntopCharacterMonth=Top-Charakter Monat\ntopCharacterDay=Top-Charakter Tag',
+            'description' => 'Wähle aus, welche Top-Inplaypostwerte angezeigt werden sollen. Nach Spieler:in oder Charakter, jeweils insgesamt, im aktuellen Monat oder am aktuellen Tag.',
+            'optionscode' => 'checkbox\ntopUser=Top-Spieler:in insgesamt\ntopUserMonth=Top-Spieler:in Monat\ntopUserDay=Top-Spieler:in Tag\ntopCharacter=Top-Charakter insgesamt\ntopCharacterMonth=Top-Charakter Monat\ntopCharacterDay=Top-Charakter Tag',
             'value' => '', // Default
             'disporder' => 6
 		),
