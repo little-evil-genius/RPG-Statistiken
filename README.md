@@ -118,6 +118,27 @@ hinzugefügte Tabelle:
 - deutsch_du/rpgstatistic.lang.php
 
 # Einstellungen
+- Ausgeschlossene Accounts
+- Spitzname
+- Forengeburtstag
+- Inplaytrackersystem
+- Top-Inplaypost Statistik
+- Top-Inplaypost Optionen
+- Zuletzt gewobbten Accounts
+- Neuste Themen/Beiträge
+- ausgelesene Foren
+- Darstellungsart
+- Anzahl der Neusten-Einträge
+- "RE:" Anzeige
+- Maximale Zeichenanzahl im Thementitel
+- farbige Benutzernamen
+- Threadpräfixe
+- Seite für RPG-Statistik
+- Erlaubte Gruppen
+- Top-Inplaypost Ranking
+- Listen PHP
+- Listen Menü
+- Listen Menü Template
 
 # Neue Template-Gruppe innerhalb der Design-Templates
 - RPG-Statistiken Templates
