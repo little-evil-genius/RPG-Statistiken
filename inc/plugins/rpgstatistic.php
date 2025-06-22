@@ -2683,7 +2683,7 @@ function rpgstatistic_topstatistic($toplimit = 1) {
         foreach ($topOptions as $option) {
             ${$option} = [];
             for ($i = 1; $i <= $limit; $i++) {
-                ${$option}["topUser".$i] = ["-", "-"];
+                ${$option}["topUser".$i] = ["", ""];
             }
         }
     } else {
@@ -2753,7 +2753,7 @@ function rpgstatistic_topstatistic($toplimit = 1) {
                 $range++;
             }
             for ($i = $range; $i <= $limit; $i++) {
-                $topUser["topUser".$i] = ["-", "-"];
+                $topUser["topUser".$i] = ["", ""];
             }
         }
     }
@@ -2794,7 +2794,7 @@ function rpgstatistic_topstatistic($toplimit = 1) {
                 $range++;
             }
             for ($i = $range; $i <= $limit; $i++) {
-                $topUserMonth["topUser".$i] = ["-", "-"];
+                $topUserMonth["topUser".$i] = ["", ""];
             }
         }
     }
@@ -2835,7 +2835,7 @@ function rpgstatistic_topstatistic($toplimit = 1) {
                 $range++;
             }
             for ($i = $range; $i <= $limit; $i++) {
-                $topUserDay["topUser".$i] = ["-", "-"];
+                $topUserDay["topUser".$i] = ["", ""];
             }
         }
     }
@@ -2866,13 +2866,19 @@ function rpgstatistic_topstatistic($toplimit = 1) {
             $range = 1;
             while ($topcharacter = $db->fetch_array($topCharacter_query)) {
                 $uid = $topcharacter['uid'];
-                $name = build_profile_link(get_user($uid)['username'], $uid);
+                $accountname = build_profile_link(get_user($uid)['username'], $uid);
+                $playername = rpgstatistic_playername($uid);
+                if (get_user($uid)['username'] != $playername) {
+                    $name = $lang->sprintf($lang->rpgstatistic_page_top_range_characterPlayer, $accountname, $playername);
+                } else {
+                    $name = $accountname;
+                }
                 $posts = $topcharacter['post_count'];
                 $topCharacter["topUser".$range] = [$posts, $name];
                 $range++;
             }
             for ($i = $range; $i <= $limit; $i++) {
-                $topCharacter["topUser".$i] = ["-", "-"];
+                $topCharacter["topUser".$i] = ["", ""];
             }
         }
     }
@@ -2903,13 +2909,19 @@ function rpgstatistic_topstatistic($toplimit = 1) {
             $range = 1;
             while ($topcharacterMonth = $db->fetch_array($topCharacterMonth_query)) {
                 $uid = $topcharacterMonth['uid'];
-                $name = build_profile_link(get_user($uid)['username'], $uid);
+                $accountname = build_profile_link(get_user($uid)['username'], $uid);
+                $playername = rpgstatistic_playername($uid);
+                if (get_user($uid)['username'] != $playername) {
+                    $name = $lang->sprintf($lang->rpgstatistic_page_top_range_characterPlayer, $accountname, $playername);
+                } else {
+                    $name = $accountname;
+                }
                 $posts = $topcharacterMonth['post_count'];
                 $topCharacterMonth["topUser".$range] = [$posts, $name];
                 $range++;
             }
             for ($i = $range; $i <= $limit; $i++) {
-                $topCharacterMonth["topUser".$i] = ["-", "-"];
+                $topCharacterMonth["topUser".$i] = ["", ""];
             }
         }
     }
@@ -2940,13 +2952,19 @@ function rpgstatistic_topstatistic($toplimit = 1) {
             $range = 1;
             while ($topcharacterDay = $db->fetch_array($topCharacterDay_query)) {
                 $uid = $topcharacterDay['uid'];
-                $name = build_profile_link(get_user($uid)['username'], $uid);
+                $accountname = build_profile_link(get_user($uid)['username'], $uid);
+                $playername = rpgstatistic_playername($uid);
+                if (get_user($uid)['username'] != $playername) {
+                    $name = $lang->sprintf($lang->rpgstatistic_page_top_range_characterPlayer, $accountname, $playername);
+                } else {
+                    $name = $accountname;
+                }
                 $posts = $topcharacterDay['post_count'];
                 $topCharacterDay["topUser".$range] = [$posts, $name];
                 $range++;
             }
             for ($i = $range; $i <= $limit; $i++) {
-                $topCharacterDay["topUser".$i] = ["-", "-"];
+                $topCharacterDay["topUser".$i] = ["", ""];
             }
         }
     }
