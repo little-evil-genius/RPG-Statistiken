@@ -403,9 +403,22 @@ Für die Darstellung der Diagramme nutzt dieses Plugin die JavaScript-Bibliothek
 
 # Demo
 ### ACP
+<img src="https://stormborn.at/plugins/rpgstatistic_acp_alldiagramm.png">
+<img src="https://stormborn.at/plugins/rpgstatistic_acp_diagramm.png">
+<img src="https://stormborn.at/plugins/rpgstatistic_acp_diagramm2.png">
+<img src="https://stormborn.at/plugins/rpgstatistic_acp_diagramm3.png">
 
-### Statistikseite
+<img src="https://stormborn.at/plugins/rpgstatistic_acp_allvariable.png">
+<img src="https://stormborn.at/plugins/rpgstatistic_acp_variable.png">
+<img src="https://stormborn.at/plugins/rpgstatistic_acp_variable2.png">
+
+### Statistiken
+<img src="https://stormborn.at/plugins/rpgstatistic_page.png">
+<img src="https://stormborn.at/plugins/rpgstatistic_toprange.png">
+<img src="https://stormborn.at/plugins/rpgstatistic_birthday.png">
 
 ### zuletzt angenommene Charaktere
+<img src="https://stormborn.at/plugins/rpgstatistic_wob.png">
 
 ### neue Themen/Beiträge-Tabelle
+<img src="https://stormborn.at/plugins/rpgstatistic_overview.png">
