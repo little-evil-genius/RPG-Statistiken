@@ -145,8 +145,8 @@ function rpgstatistic_activate() {
 
     // VARIABLEN EINFÜGEN
     find_replace_templatesets('headerinclude','#'.preg_quote('{$stylesheets}').'#','<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script> {$stylesheets}');
-    find_replace_templatesets('index_boardstats', '#'.preg_quote('{$header}').'#', '{$header}\n{$rpgstatistic_overviewtable}');
-    find_replace_templatesets('index_boardstats', '#'.preg_quote('{$boardstats}').'#', '{$boardstats}\n{$rpgstatistic_wob}');
+    find_replace_templatesets('index_boardstats', '#'.preg_quote('{$header}').'#', '{$header}{$rpgstatistic_overviewtable}');
+    find_replace_templatesets('index_boardstats', '#'.preg_quote('{$boardstats}').'#', '{$boardstats}{$rpgstatistic_wob}');
 }
  
 // Diese Funktion wird aufgerufen, wenn das Plugin deaktiviert wird.
