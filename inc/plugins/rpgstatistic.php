@@ -144,9 +144,9 @@ function rpgstatistic_activate() {
     require MYBB_ROOT."/inc/adminfunctions_templates.php";
 
     // VARIABLEN EINFÜGEN
-    find_replace_templatesets('headerinclude','#'.preg_quote('{$stylesheets}').'#',"<script src=\"https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js\"></script>\n{$stylesheets}");
-    find_replace_templatesets('index_boardstats', '#'.preg_quote('{$header}').'#', "{$header}\n{$rpgstatistic_overviewtable}");
-    find_replace_templatesets('index_boardstats', '#'.preg_quote('{$boardstats}').'#', "{$boardstats}\n{$rpgstatistic_wob}");
+    find_replace_templatesets('headerinclude','#'.preg_quote('{$stylesheets}').'#','<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script> {$stylesheets}');
+    find_replace_templatesets('index_boardstats', '#'.preg_quote('{$header}').'#', '{$header}\n{$rpgstatistic_overviewtable}');
+    find_replace_templatesets('index_boardstats', '#'.preg_quote('{$boardstats}').'#', '{$boardstats}\n{$rpgstatistic_wob}');
 }
  
 // Diese Funktion wird aufgerufen, wenn das Plugin deaktiviert wird.
@@ -155,7 +155,7 @@ function rpgstatistic_deactivate() {
     require MYBB_ROOT."/inc/adminfunctions_templates.php";
 
     // VARIABLEN ENTFERNEN
-	find_replace_templatesets("headerinclude", "#".preg_quote('<script src=\"https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js\">')."#i", '', 0);
+	find_replace_templatesets("headerinclude", "#".preg_quote('<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>')."#i", '', 0);
 	find_replace_templatesets("index_boardstats", "#".preg_quote('{$rpgstatistic_overviewtable}')."#i", '', 0);
     find_replace_templatesets("index_boardstats", "#".preg_quote('{$rpgstatistic_wob}')."#i", '', 0);
     find_replace_templatesets("forumbit_depth1_cat", "#".preg_quote('{$forum[\'rpgstatistic_wob\']}')."#i", '', 0);
@@ -1815,7 +1815,7 @@ function rpgstatistic_forumbits(&$forum) {
 // Statistikseite
 function rpgstatistic_misc() {
 
-    global $db, $mybb, $lang, $templates, $theme, $header, $headerinclude, $footer, $page;
+    global $db, $mybb, $lang, $templates, $theme, $header, $headerinclude, $footer, $page, $topOption;
 
     // return if the action key isn't part of the input
     if ($mybb->get_input('action', MYBB::INPUT_STRING) !== 'rpgstatistic' || $mybb->settings['rpgstatistic_page'] == 0) {
@@ -2203,23 +2203,23 @@ function rpgstatistic_build_charts(){
                 }
             }
               
-            $labels_chart = "";
-            $data_chart = "";            
+            $labels_array = [];
+            $data_array = [];
             foreach ($data_options as $fieldname => $fieldcount) {
 
                 // Gruppennamen
                 if (!empty($usergroups)) {
                     $fieldname = $db->fetch_field($db->simple_select("usergroups", "title", "gid = '".$fieldname."'"), "title");
-                } else {
-                    $fieldname = $fieldname;            
                 }
 
-                // Chart 
-                $labels_chart .= "'".$fieldname."', ";            
-                $data_chart .= "'".$fieldcount."', ";
+                $labels_array[] = $fieldname;
+                $data_array[] = (int)$fieldcount;
 
-                eval("\$word_bit .= \"".$templates->get("rpgstatistic_chart_word_bit")."\";");    
+                eval("\$word_bit .= \"".$templates->get("rpgstatistic_chart_word_bit")."\";");
             }
+
+            $labels_chart = json_encode($labels_array, JSON_UNESCAPED_UNICODE);
+            $data_chart = json_encode($data_array, JSON_UNESCAPED_UNICODE);
 
             // höchster Wert
             $maxCount = max($data_options)+30; 
@@ -2233,18 +2233,19 @@ function rpgstatistic_build_charts(){
                     $colors_array = explode(",", $colors);
 
                     $propertyValue = "";
-                    $colors = "[";
+                    $colors_js_array = "[";
                     foreach ($colors_array as $color) {
-                        $bodytag = str_replace("var(", "", $color);
-                        $bodytag = str_replace(")", "", $bodytag);
+                        $bodytag = trim(str_replace(["var(", ")"], "", $color));
 
-                        $colorname = str_replace("--", "", $bodytag);
+                        $colorname = ltrim($bodytag, '-');
 
-                        $colors .= "".$colorname.",";
-                        $propertyValue .= "var ".$colorname." = style.getPropertyValue('".$bodytag."');";
+                        $propertyValue .= "var ".$colorname." = style.getPropertyValue('--".$colorname."');\n";
+
+                        $colors_js_array .= $colorname.",";
                     }
-                    $colors = substr($colors, 0, -1);
-                    $colors .= "]";
+
+                    $colors_js_array = rtrim($colors_js_array, ',') . "]";
+                    $colors = $colors_js_array;
 
                 } else {
                     $colors_array = explode(",", $colors);
@@ -2264,8 +2265,8 @@ function rpgstatistic_build_charts(){
 
             // Balken
             if ($type == 1) {
-                $labels_chart = "[".$labels_chart."]";
-                $data_chart = "[".$data_chart."]";
+                $labels_chart = $labels_chart;
+                $data_chart = $data_chart;
                 $backgroundColor = $colors;
                 eval("\$statistic_typ .= \"".$templates->get("rpgstatistic_chart_bar")."\";");
             } 
@@ -2274,8 +2275,8 @@ function rpgstatistic_build_charts(){
                 if ($type == 3) {
                     $legend = "true";
                 }
-                $labels_chart = "[".$labels_chart."]";
-                $data_chart = "[".$data_chart."]";
+                $labels_chart = $labels_chart;
+                $data_chart = $data_chart;
                 $backgroundColor = $colors;
                 eval("\$statistic_typ .= \"".$templates->get("rpgstatistic_chart_pie")."\";");
             }
@@ -2682,7 +2683,7 @@ function rpgstatistic_topstatistic($toplimit = 1) {
         foreach ($topOptions as $option) {
             ${$option} = [];
             for ($i = 1; $i <= $limit; $i++) {
-                ${$option}["topUser".$i] = ["", ""];
+                ${$option}["topUser".$i] = ["-", "-"];
             }
         }
     } else {
@@ -2752,7 +2753,7 @@ function rpgstatistic_topstatistic($toplimit = 1) {
                 $range++;
             }
             for ($i = $range; $i <= $limit; $i++) {
-                $topUser["topUser".$i] = ["", ""];
+                $topUser["topUser".$i] = ["-", "-"];
             }
         }
     }
@@ -2793,7 +2794,7 @@ function rpgstatistic_topstatistic($toplimit = 1) {
                 $range++;
             }
             for ($i = $range; $i <= $limit; $i++) {
-                $topUserMonth["topUser".$i] = ["", ""];
+                $topUserMonth["topUser".$i] = ["-", "-"];
             }
         }
     }
@@ -2834,7 +2835,7 @@ function rpgstatistic_topstatistic($toplimit = 1) {
                 $range++;
             }
             for ($i = $range; $i <= $limit; $i++) {
-                $topUserDay["topUser".$i] = ["", ""];
+                $topUserDay["topUser".$i] = ["-", "-"];
             }
         }
     }
@@ -2871,7 +2872,7 @@ function rpgstatistic_topstatistic($toplimit = 1) {
                 $range++;
             }
             for ($i = $range; $i <= $limit; $i++) {
-                $topCharacter["topUser".$i] = ["", ""];
+                $topCharacter["topUser".$i] = ["-", "-"];
             }
         }
     }
@@ -2908,7 +2909,7 @@ function rpgstatistic_topstatistic($toplimit = 1) {
                 $range++;
             }
             for ($i = $range; $i <= $limit; $i++) {
-                $topCharacterMonth["topUser".$i] = ["", ""];
+                $topCharacterMonth["topUser".$i] = ["-", "-"];
             }
         }
     }
@@ -2945,7 +2946,7 @@ function rpgstatistic_topstatistic($toplimit = 1) {
                 $range++;
             }
             for ($i = $range; $i <= $limit; $i++) {
-                $topCharacterDay["topUser".$i] = ["", ""];
+                $topCharacterDay["topUser".$i] = ["-", "-"];
             }
         }
     }
@@ -4388,7 +4389,7 @@ function rpgstatistic_templates($mode = '') {
     );
      
     $templates[] = array(
-        'title'		=> 'rpgstatistic_page_top_rang_bit',
+        'title'		=> 'rpgstatistic_page_top_range_bit',
         'template'	=> $db->escape_string('<div class="rpgstatistic_page_range">
         <div class="rpgstatistic_page_range-headline"><b>{$rangeName}</b></div>
         <div class="rpgstatistic_page_range-content">
@@ -4404,7 +4405,7 @@ function rpgstatistic_templates($mode = '') {
      
     $templates[] = array(
         'title'		=> 'rpgstatistic_page_top_range_user',
-        'template'	=> $db->escape_string('<div class="rpgstatistic_page_top_rang-user">
+        'template'	=> $db->escape_string('<div class="rpgstatistic_page_top_range-user">
         <div class="rpgstatistic_page_top_range_user-item">{$user}</div>
         <div class="rpgstatistic_page_top_range_user-item">{$count}</div>
         </div>'),
