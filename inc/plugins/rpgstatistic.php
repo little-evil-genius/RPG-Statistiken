@@ -3031,6 +3031,9 @@ function rpgstatistic_wob() {
         $uid = $wob['uid'];
         $userfields_query = $db->simple_select("userfields", "*", "ufid = ".$uid);
         $userfields = $db->fetch_array($userfields_query);
+        if (!is_array($userfields)) {
+            $userfields = [];
+        }
         $character = array_merge($wob, $userfields);
 
         // Avatar
