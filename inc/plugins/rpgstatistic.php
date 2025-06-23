@@ -145,8 +145,8 @@ function rpgstatistic_activate() {
 
     // VARIABLEN EINFÜGEN
     find_replace_templatesets('headerinclude','#'.preg_quote('{$stylesheets}').'#','<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script> {$stylesheets}');
-    find_replace_templatesets('index_boardstats', '#'.preg_quote('{$header}').'#', '{$header}{$rpgstatistic_overviewtable}');
-    find_replace_templatesets('index_boardstats', '#'.preg_quote('{$boardstats}').'#', '{$boardstats}{$rpgstatistic_wob}');
+    find_replace_templatesets('index', '#'.preg_quote('{$header}').'#', '{$header}{$rpgstatistic_overviewtable}');
+    find_replace_templatesets('index', '#'.preg_quote('{$boardstats}').'#', '{$boardstats}{$rpgstatistic_wob}');
 }
  
 // Diese Funktion wird aufgerufen, wenn das Plugin deaktiviert wird.
@@ -156,8 +156,8 @@ function rpgstatistic_deactivate() {
 
     // VARIABLEN ENTFERNEN
 	find_replace_templatesets("headerinclude", "#".preg_quote('<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>')."#i", '', 0);
-	find_replace_templatesets("index_boardstats", "#".preg_quote('{$rpgstatistic_overviewtable}')."#i", '', 0);
-    find_replace_templatesets("index_boardstats", "#".preg_quote('{$rpgstatistic_wob}')."#i", '', 0);
+	find_replace_templatesets("index", "#".preg_quote('{$rpgstatistic_overviewtable}')."#i", '', 0);
+    find_replace_templatesets("index", "#".preg_quote('{$rpgstatistic_wob}')."#i", '', 0);
     find_replace_templatesets("forumbit_depth1_cat", "#".preg_quote('{$forum[\'rpgstatistic_wob\']}')."#i", '', 0);
     find_replace_templatesets("forumbit_depth2_forum", "#".preg_quote('{$forum[\'rpgstatistic_wob\']}')."#i", '', 0);
 }
