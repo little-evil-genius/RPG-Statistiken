@@ -2592,19 +2592,33 @@ function rpgstatistic_inplaystatistic() {
         return $inplaystatistic_array;
     }
 
-    $query_allinplaypost = $db->query("SELECT message FROM ".TABLE_PREFIX."posts p
-    WHERE  p.tid IN (".implode(",", $sceneTIDs).")
-    AND p.visible = 1
-    ".$excludedaccounts_sql."
-    ");
+    $lastPid = 0;
+    $batchSize = 100;
 
-    while ($post = $db->fetch_array($query_allinplaypost)){
-        $count_inplayposts++;
+    do {
     
-        $clean = rpgstatistic_count_words_characters($post['message']);
-        $count_words += $clean['words'];
-        $count_character += $clean['characters'];
-    }
+        $query_allinplaypost = $db->query("SELECT p.pid, p.message FROM ".TABLE_PREFIX."posts p
+        WHERE p.tid IN (".implode(",", $sceneTIDs).")
+        AND p.visible = 1    
+        AND p.pid > ".$lastPid."
+        ".$excludedaccounts_sql."
+        ORDER BY p.pid ASC
+        LIMIT ".$batchSize."
+        ");
+
+        $fetched = 0;
+        while ($post = $db->fetch_array($query_allinplaypost)) {
+            $fetched++;
+            $lastPid = $post['pid'];
+            $count_inplayposts++;
+
+            // sichere Zählung
+            $clean = rpgstatistic_count_words_characters($post['message']);
+            $count_words += $clean['words'];
+            $count_character += $clean['characters'];
+        }
+
+    } while ($fetched > 0);
         
     // Inplayposts
     if($count_inplayposts > 0) {
@@ -3661,21 +3675,30 @@ function rpgstatistic_clean_message($message) {
 }
 
 // Zeichen und Wörter zahlen
-function rpgstatistic_count_words_characters($message) {
-
-    global $mybb;
+function rpgstatistic_count_words_characters($message, $maxLength = 50000) {
+    $totalWords = 0;
+    $totalChars = 0;
 
     $messageClean = rpgstatistic_clean_message($message);
 
-    // Wortanzahl
-    $word_count = count(preg_split('/[^\p{L}\p{N}äöüÄÖÜß]+/u', $messageClean, -1, PREG_SPLIT_NO_EMPTY));
+    $length = strlen($messageClean);
+    for ($i = 0; $i < $length; $i += $maxLength) {
+        $chunk = substr($messageClean, $i, $maxLength);
 
-    // Zeichenanzahl
-    $character_count = mb_strlen(str_replace([' ', "\n", "\r", "\t"], '', $messageClean));
+        // Wortanzahl
+        preg_match_all('/\b[\p{L}\p{N}äöüÄÖÜß]+\b/u', $chunk, $matches);
+        $word_count = count($matches[0]);
+
+        // Zeichenanzahl (ohne Leerzeichen)
+        $character_count = mb_strlen(str_replace([' ', "\n", "\r", "\t"], '', $chunk));
+
+        $totalWords += $word_count;
+        $totalChars += $character_count;
+    }
 
     return [
-        'words' => $word_count,
-        'characters' => $character_count
+        'words' => $totalWords,
+        'characters' => $totalChars
     ];
 }
 
