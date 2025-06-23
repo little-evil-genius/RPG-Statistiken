@@ -1784,8 +1784,12 @@ function rpgstatistic_global() {
 
     $rpgstatistic_wob = "";
     if ($mybb->settings['rpgstatistic_wobUser'] == 1) {
-        $characters_bit = rpgstatistic_wob();
-        eval("\$rpgstatistic_wob = \"".$templates->get("rpgstatistic_wob")."\";");
+        if ($mybb->settings['rpgstatistic_wobUser_guest'] == 0 && $mybb->user['uid'] == 0) {
+            $rpgstatistic_wob = "";
+        } else {
+            $characters_bit = rpgstatistic_wob();
+            eval("\$rpgstatistic_wob = \"".$templates->get("rpgstatistic_wob")."\";");
+        }
     }
 
     $rpgstatistic_overviewtable = "";
@@ -1801,6 +1805,11 @@ function rpgstatistic_forumbits(&$forum) {
     global $db, $mybb, $lang, $templates, $theme, $characters_bit;
 
     if ($forum['fid'] != $mybb->settings['rpgstatistic_wobUser_forumbit'] || $mybb->settings['rpgstatistic_wobUser'] == 0) {
+        $forum['rpgstatistic_wob'] = "";
+        return;    
+    }
+
+    if ($mybb->settings['rpgstatistic_wobUser_guest'] == 0 && $mybb->user['uid'] == 0) {
         $forum['rpgstatistic_wob'] = "";
         return;    
     }
