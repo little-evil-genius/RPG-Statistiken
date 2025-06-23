@@ -1004,7 +1004,7 @@ function rpgstatistic_admin_manage() {
         }
 
         // ÜBERSICHT VARIABELN
-		if ($mybb->get_input('action') == "variables") {
+        if ($mybb->get_input('action') == "variables") {
 
             $page->add_breadcrumb_item($lang->rpgstatistic_breadcrumb_overview_variables);
 			$page->output_header($lang->rpgstatistic_breadcrumb_main." - ".$lang->rpgstatistic_overview_variables_header);
@@ -1594,14 +1594,13 @@ function rpgstatistic_admin_manage() {
 			}
 
 			if ($mybb->request_method == "post") {
-
                 // Eintrag in der DB löschen
                 $db->delete_query('rpgstatistic_variables', "vid = '".$vid."'");
 
 				flash_message($lang->rpgstatistic_delete_variable_flash, 'success');
 				admin_redirect("index.php?module=rpgstuff-rpgstatistic&amp;action=variables");
 			} else {
-				$page->output_confirm_action(
+                $page->output_confirm_action(
 					"index.php?module=rpgstuff-rpgstatistic&amp;action=delete_variable&amp;vid=".$vid,
 					$lang->rpgstatistic_delete_variable_notice
 				);
@@ -2549,7 +2548,14 @@ function rpgstatistic_inplaystatistic() {
         $excludedaccounts_sql = "AND uid NOT IN (".$excludedaccounts.")";
     }
 
-    $inplaystatistic_array = [];
+    $inplaystatistic_array = [
+        "inplayscenes" => 0,
+        "inplayposts" => 0,
+        "allCharacters" => 0,
+        "averageCharacters" => 0,
+        "allWords" => 0,
+        "averageWords" => 0
+    ];
 
     $sceneTIDs = [];
 
@@ -2558,15 +2564,6 @@ function rpgstatistic_inplaystatistic() {
     $inplayFids = implode(',', array_map('intval', $inplayforums));
 
     if ($inplayFids == 0) { 
-        $inplaystatistic_array = [
-            "inplayscenes" => 0,
-            "inplayposts" => 0,
-            "allCharacters" => 0,
-            "averageCharacters" => 0,
-            "allWords" => 0,
-            "averageWords" => 0
-        ];
-
         return $inplaystatistic_array;
     }
     
@@ -2581,6 +2578,10 @@ function rpgstatistic_inplaystatistic() {
     while ($scenes = $db->fetch_array($inplayTids_query)){
         $sceneTIDs[] = $scenes['tid']; 
     } 
+
+    if (empty($sceneTIDs)) { 
+        return $inplaystatistic_array;
+    }
 
     $query_allinplaypost = $db->query("SELECT message FROM ".TABLE_PREFIX."posts p
     WHERE  p.tid IN (".implode(",", $sceneTIDs).")
@@ -3679,7 +3680,7 @@ function rpgstatistic_overviewtable_build_topics($query, $column = '') {
 
     $topics = "";
     while ($bit = $db->fetch_array($query)) {
-
+        
         // Leer laufen lassen
         $prefix = "";
         $fullsubject = "";
