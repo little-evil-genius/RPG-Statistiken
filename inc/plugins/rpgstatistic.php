@@ -3746,7 +3746,7 @@ function rpgstatistic_overviewtable_build_topics($query, $column = '') {
             }        
         }
 
-        if ($re_setting == 1) {
+        if ($re_setting == 0) {
             $subject = preg_replace('/^(RE:\s*)+/i', '', $bit['subject']);
         } else {
             $subject = $bit['subject'];
