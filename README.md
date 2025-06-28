@@ -417,7 +417,7 @@ Damit alle Admin-Accounts Zugriff auf die Verwaltung der Diagramme und Variabeln
 index.php?module=rpgstuff-rpgstatistic<br>
 <br>
 <b>Statistikseite</b><br>
-usercp.php?action=rpgstatistic
+misc.php?action=rpgstatistic
 
 # Disclaimer
 Für die Darstellung der Diagramme nutzt dieses Plugin die JavaScript-Bibliothek [Chart.js](https://www.chartjs.org/). Die Einbindung erfolgt über ein externes CDN. Chart.js ist Open Source (MIT-Lizenz) und ermöglicht eine moderne, flexible und anpassbare Visualisierung von Daten direkt im Browser. Bitte beachte, dass durch die Nutzung eines externen CDN beim Aufruf der Seite eine Verbindung zu einem Drittanbieter (cdnjs.cloudflare.com) hergestellt wird.
