@@ -31,7 +31,7 @@ function rpgstatistic_info()
 		"website"	=> "https://github.com/little-evil-genius/RPG-Statistiken",
 		"author"	=> "little.evil.genius",
 		"authorsite"	=> "https://storming-gates.de/member.php?action=profile&uid=1712",
-		"version"	=> "1.0",
+		"version"	=> "1.0.1",
 		"compatibility" => "18*"
 	);
 }
@@ -1743,15 +1743,11 @@ function rpgstatistic_admin_update_plugin(&$table) {
 // globales Array $mybb erweitern
 function rpgstatistic_mybbArray() {
  
-    if (!property_exists($GLOBALS['mybb'], '__rpgstatistic_ready')) {
-        class MyBB_Extended extends MyBB {
-            public array $rpgstatistic = [];
-        }
-        $GLOBALS['mybb'] = unserialize(
-            preg_replace('/^O:4:"MyBB"/', 'O:13:"MyBB_Extended"', serialize($GLOBALS['mybb']))
-        );
+    global $mybb;
+    
+    if (!isset($mybb->rpgstatistic) || !is_array($mybb->rpgstatistic)) {
+        $mybb->rpgstatistic = [];
     }
-
 }
 
 // Global ausgeben
