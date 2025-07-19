@@ -1166,8 +1166,7 @@ function rpgstatistic_admin_manage() {
             // DATEN AUSLESEN
             // Profilfelder auslesen
             $query_profilefield = $db->query("SELECT * FROM ".TABLE_PREFIX."profilefields
-            WHERE fid NOT IN (SELECT field FROM ".TABLE_PREFIX."rpgstatistic_variables WHERE field != '')
-            AND (type LIKE 'select%'
+            WHERE (type LIKE 'select%'
             OR type LIKE 'radio%'
             OR type LIKE 'multiselect%'
             OR type LIKE 'checkbox%')
@@ -1420,8 +1419,7 @@ function rpgstatistic_admin_manage() {
             // DATEN AUSLESEN
             // Profilfelder auslesen
             $query_profilefield = $db->query("SELECT * FROM ".TABLE_PREFIX."profilefields
-            WHERE fid NOT IN (SELECT field FROM ".TABLE_PREFIX."rpgstatistic_variables WHERE field != '' AND vid != '".$vid."')
-            AND (type LIKE 'select%'
+            WHERE (type LIKE 'select%'
             OR type LIKE 'radio%'
             OR type LIKE 'multiselect%'
             OR type LIKE 'checkbox%')
