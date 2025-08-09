@@ -21,6 +21,14 @@ $plugins->add_hook('global_intermediate', 'rpgstatistic_global');
 $plugins->add_hook('misc_start', 'rpgstatistic_misc');
 $plugins->add_hook('fetch_wol_activity_end', 'rpgstatistic_online_activity');
 $plugins->add_hook('build_friendly_wol_location_end', 'rpgstatistic_online_location');
+$plugins->add_hook('datahandler_post_insert_post', 'rpgstatistic_new_post');
+$plugins->add_hook('datahandler_post_insert_thread_post', 'rpgstatistic_new_thread');
+$plugins->add_hook('datahandler_post_update', 'rpgstatistic_post_edit_update');
+$plugins->add_hook('class_moderation_delete_post_start', 'rpgstatistic_post_deleted_hard');
+$plugins->add_hook('class_moderation_soft_delete_posts', 'rpgstatistic_posts_deleted_soft');
+$plugins->add_hook('datahandler_user_delete_posts', 'rpgstatistic_user_posts_deleted');
+$plugins->add_hook('class_moderation_delete_thread_start', 'rpgstatistic_thread_deleted_hard');
+$plugins->add_hook('class_moderation_soft_delete_threads', 'rpgstatistic_threads_deleted_soft');
  
 // Die Informationen, die im Pluginmanager angezeigt werden
 function rpgstatistic_info()
@@ -31,7 +39,7 @@ function rpgstatistic_info()
 		"website"	=> "https://github.com/little-evil-genius/RPG-Statistiken",
 		"author"	=> "little.evil.genius",
 		"authorsite"	=> "https://storming-gates.de/member.php?action=profile&uid=1712",
-		"version"	=> "1.0.1",
+		"version"	=> "1.1",
 		"compatibility" => "18*"
 	);
 }
@@ -89,6 +97,9 @@ function rpgstatistic_install(){
     $db->insert_query('themestylesheets', $stylesheet);
     cache_stylesheet(1, "rpgstatistic.css", $stylesheet['stylesheet']);
     update_theme_stylesheet_list("1");
+
+    // CACHE HINZUFÜGEN
+    rpgstatistic_cache();
 }
  
 // Funktion zur Überprüfung des Installationsstatus; liefert true zurürck, wenn Plugin installiert, sonst false (optional).
@@ -136,14 +147,16 @@ function rpgstatistic_uninstall() {
 	while($theme = $db->fetch_array($query)) {
 		update_theme_stylesheet_list($theme['tid']);
 	}
+
+    // CACHE ENTFERNEN
+    $db->delete_query("datacache", "title = 'rpgstatistic'");
 }
  
 // Diese Funktion wird aufgerufen, wenn das Plugin aktiviert wird.
 function rpgstatistic_activate() {
-    
-    require MYBB_ROOT."/inc/adminfunctions_templates.php";
 
     // VARIABLEN EINFÜGEN
+    require MYBB_ROOT."/inc/adminfunctions_templates.php";
     find_replace_templatesets('headerinclude','#'.preg_quote('{$stylesheets}').'#','<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script> {$stylesheets}');
     find_replace_templatesets('index', '#'.preg_quote('{$header}').'#', '{$header}{$rpgstatistic_overviewtable}');
     find_replace_templatesets('index', '#'.preg_quote('{$boardstats}').'#', '{$boardstats}{$rpgstatistic_wob}');
@@ -151,10 +164,9 @@ function rpgstatistic_activate() {
  
 // Diese Funktion wird aufgerufen, wenn das Plugin deaktiviert wird.
 function rpgstatistic_deactivate() {
-    
-    require MYBB_ROOT."/inc/adminfunctions_templates.php";
 
     // VARIABLEN ENTFERNEN
+    require MYBB_ROOT."/inc/adminfunctions_templates.php";
 	find_replace_templatesets("headerinclude", "#".preg_quote('<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>')."#i", '', 0);
 	find_replace_templatesets("index", "#".preg_quote('{$rpgstatistic_overviewtable}')."#i", '', 0);
     find_replace_templatesets("index", "#".preg_quote('{$rpgstatistic_wob}')."#i", '', 0);
@@ -1661,7 +1673,7 @@ function rpgstatistic_admin_update_stylesheet(&$table) {
 // Plugin Update
 function rpgstatistic_admin_update_plugin(&$table) {
 
-    global $db, $mybb, $lang;
+    global $db, $mybb, $lang, $cache;
 	
     $lang->load('rpgstuff_plugin_updates');
 
@@ -1719,6 +1731,20 @@ function rpgstatistic_admin_update_plugin(&$table) {
         // Datenbanktabellen & Felder
         rpgstatistic_database();
 
+        // Cache
+        $rpgstatistic = $cache->read('rpgstatistic');
+        if (!$rpgstatistic || !is_array($rpgstatistic)) {
+  
+            $rpgstatistic = [
+                'inplayscenes' => 0,
+                'inplayposts' => 0,
+                'allCharacters' => 0,
+                'averageCharacters' => 0,
+                'allWords' => 0,
+                'averageWords' => 0,
+            ];
+        }
+
         flash_message($lang->plugins_flash, "success");
         admin_redirect("index.php?module=rpgstuff-plugin_updates");
     }
@@ -1751,8 +1777,8 @@ function rpgstatistic_mybbArray() {
 // Global ausgeben
 function rpgstatistic_global() {
 
-    global $mybb, $lang, $templates, $characters_bit, $rpgstatistic_wob, $rpgstatistic_overviewtable, $overviewtableBit;
-
+    global $mybb, $cache, $lang, $templates, $characters_bit, $rpgstatistic_wob, $rpgstatistic_overviewtable, $overviewtableBit;
+    
     $lang->load('rpgstatistic');
 
     if (!isset($mybb->rpgstatistic)) {
@@ -1760,7 +1786,6 @@ function rpgstatistic_global() {
     }
 
     // GLOBAL ABRUFBAR
-
     $chartData = rpgstatistic_build_charts();
     $variablesData = rpgstatistic_build_variables();
     $birthdayData = rpgstatistic_forumbirthday();
@@ -1768,14 +1793,13 @@ function rpgstatistic_global() {
     $inplayData = rpgstatistic_inplaystatistic();
     $topData = rpgstatistic_topstatistic();
 
-    $rpgstatisticData = array_merge($chartData, $variablesData, $birthdayData, $inplayData, $userData, $topData);
+    $rpgstatisticData = array_merge($chartData, $variablesData, $birthdayData, $userData, $inplayData, $topData);
 
     foreach ($rpgstatisticData as $key => $value) {
         $mybb->rpgstatistic[$key] = $value;
     }
 
     // NICHT GLOBAL ABRUFBAR
-
     $rpgstatistic_wob = "";
     if ($mybb->settings['rpgstatistic_wobUser'] == 1) {
         if ($mybb->settings['rpgstatistic_wobUser_guest'] == 0 && $mybb->user['uid'] == 0) {
@@ -2017,6 +2041,491 @@ function rpgstatistic_online_location($plugin_array) {
 	}
 
 	return $plugin_array;
+}
+
+###########################
+### CACHE DATEN UPDATEN ###
+###########################
+
+// Neuer Post
+function rpgstatistic_new_post(&$dataHandler) {
+
+    global $mybb;
+
+    $excludedaccounts = [];
+    if (!empty($mybb->settings['rpgstatistic_excludedaccounts'])) {
+        $excludedaccounts = array_map('intval', explode(',', $mybb->settings['rpgstatistic_excludedaccounts']));
+    }
+
+    $inplayarea = rpgstatistic_inplayforums();
+    $inplayforums = rpgstatistic_get_relevant_forums($inplayarea);
+    if (empty($inplayforums)) {
+        return;
+    }
+
+    $postData = [];
+    if (!empty($dataHandler->post_insert_data)) {
+        $postData = $dataHandler->post_insert_data;
+    } else {
+        return; 
+    }
+
+    $uid = $postData['uid'];
+    $fid = $postData['fid'];
+
+    if ($uid < 1) {
+        return;
+    }
+
+    if (in_array($uid, $excludedaccounts)) {
+        return;
+    }
+
+    if (!in_array($fid, $inplayforums)) {
+        return;
+    }
+
+    if (!empty($postData['savedraft'])) {
+        return;
+    }
+
+    $clean = rpgstatistic_count_words_characters($postData['message']);
+    rpgstatistic_cache_update([
+        'inplayposts' => '+1',
+        'allCharacters' => '+'.$clean['characters'],
+        'allWords' => '+'.$clean['words'],
+    ]);
+}
+
+// Neue Szene (+ Anfangs Post)
+function rpgstatistic_new_thread(&$dataHandler) {
+
+    global $mybb;
+
+    $excludedaccounts = [];
+    if (!empty($mybb->settings['rpgstatistic_excludedaccounts'])) {
+        $excludedaccounts = array_map('intval', explode(',', $mybb->settings['rpgstatistic_excludedaccounts']));
+    }
+
+    $inplayarea = rpgstatistic_inplayforums();
+    $inplayforums = rpgstatistic_get_relevant_forums($inplayarea);
+    if (empty($inplayforums)) {
+        return;
+    }
+
+    $postData = [];
+    if (!empty($dataHandler->post_insert_data)) {
+        $postData = $dataHandler->post_insert_data;
+    } else {
+        return; 
+    }
+
+    $uid = $postData['uid'];
+    $fid = $postData['fid'];
+
+    if ($uid < 1) {
+        return;
+    }
+
+    if (in_array($uid, $excludedaccounts)) {
+        return;
+    }
+
+    if (!in_array($fid, $inplayforums)) {
+        return;
+    }
+
+    if (!empty($postData['savedraft'])) {
+        return;
+    }
+
+    $clean = rpgstatistic_count_words_characters($postData['message']);
+    rpgstatistic_cache_update([
+        'inplayscenes' => '+1',
+        'inplayposts' => '+1',
+        'allCharacters' => '+'.$clean['characters'],
+        'allWords' => '+'.$clean['words'],
+    ]);
+}
+
+// Post bearbeiten
+function rpgstatistic_post_edit_update(&$dataHandler) {
+
+    global $mybb;
+
+    if (empty($dataHandler->data['pid'])) {
+        return;
+    }
+    $pid = $dataHandler->data['pid'];
+
+    $oldPost = get_post($pid);
+    if (!$oldPost) {
+        return;
+    }
+
+    if (!empty($mybb->settings['rpgstatistic_excludedaccounts'])) {
+        $excluded = array_map('intval', explode(',', $mybb->settings['rpgstatistic_excludedaccounts']));
+        if (in_array($oldPost['uid'], $excluded)) {
+            return;
+        }
+    }
+
+    $inplayarea = rpgstatistic_inplayforums();
+    $inplayforums = rpgstatistic_get_relevant_forums($inplayarea);
+    if (!in_array($oldPost['fid'], $inplayforums)) {
+        return;
+    }
+
+    $oldCounts = rpgstatistic_count_words_characters($oldPost['message']);
+    if (isset($dataHandler->post_update_data['message'])) {
+        $newMessage = $dataHandler->post_update_data['message'];
+    } else {
+        $newMessage = $oldPost['message'];
+    }
+    $newCounts = rpgstatistic_count_words_characters($newMessage);
+
+    rpgstatistic_cache_update([
+        'allWords' => '-'.$oldCounts['words'],
+        'allCharacters' => '-'.$oldCounts['characters']
+    ]);
+
+    rpgstatistic_cache_update([
+        'allWords' => '+'.$newCounts['words'],
+        'allCharacters' => '+'.$newCounts['characters']
+    ]);
+}
+
+// Gelöschter Post
+// Beiträge löschen anstatt zu verstecken
+function rpgstatistic_post_deleted_hard($pid) {
+
+    global $db;
+
+    $pid = $pid;
+    if (!$pid) return;
+
+    $post = $db->fetch_array($db->simple_select('posts', '*', "pid = ".$pid));
+    if (!$post) return;
+
+    rpgstatistic_handle_post_removal($post);
+
+    return $pid;
+}
+
+// Beiträge verstecken anstatt zu löschen
+function rpgstatistic_posts_deleted_soft(array $pids) {
+
+    global $db;
+
+    if (empty($pids)) return;
+
+    foreach ($pids as $pid) {
+        $pid = $pid;
+        if (!$pid) continue;
+
+        $post = $db->fetch_array($db->simple_select('posts', '*', "pid = ".$pid));
+        if (!$post) continue;
+
+        rpgstatistic_handle_post_removal($post);
+    }
+}
+
+// Löschen aller Posts eines Users
+function rpgstatistic_user_posts_deleted($dataHandler) {
+
+    global $db;
+
+    if (empty($dataHandler->delete_uids)) return;
+
+    $uids = $dataHandler->delete_uids;
+    if (is_string($uids)) {
+        $uids = explode(',', $uids);
+    }
+    $uids = array_map('intval', $uids);
+
+    $query = $db->simple_select('posts', '*', "uid IN (".implode(',', $uids).")");
+    while ($post = $db->fetch_array($query)) {
+        rpgstatistic_handle_post_removal($post);
+    }
+}
+
+// Themen löschen anstatt zu verstecken
+function rpgstatistic_thread_deleted_hard($tid) {
+
+    global $db;
+
+    $tid = $tid;
+    if (!$tid) return;
+
+    $query = $db->simple_select('posts', '*', "tid = ".$tid);
+    while ($post = $db->fetch_array($query)) {
+        rpgstatistic_handle_post_removal($post);
+    }
+}
+
+// Themen verstecken anstatt zu löschen
+function rpgstatistic_threads_deleted_soft($tids) {
+
+    global $db;
+
+    if (empty($tids)) return;
+
+    if (is_array($tids)) {
+        $tids = array_map('intval', $tids);
+    } else {
+        $tids = array_map('intval', explode(',', $tids));
+    }
+
+    foreach ($tids as $tid) {
+        if (!$tid) continue;
+
+        $query = $db->simple_select('posts', '*', "tid = {$tid}");
+        while ($post = $db->fetch_array($query)) {
+            rpgstatistic_handle_post_removal($post);
+        }
+    }
+}
+
+// Post löschen
+function rpgstatistic_handle_post_removal(array $post) {
+
+    global $mybb, $db, $rpgstatistic_processed_pids;
+
+    if (!isset($rpgstatistic_processed_pids)) {
+        $rpgstatistic_processed_pids = [];
+    }
+
+    if (in_array($post['pid'], $rpgstatistic_processed_pids)) {
+        return;
+    }
+
+    $rpgstatistic_processed_pids[] = $post['pid'];
+
+    $excludedaccounts = [];
+    if (!empty($mybb->settings['rpgstatistic_excludedaccounts'])) {
+        $excludedaccounts = array_map('intval', explode(',', $mybb->settings['rpgstatistic_excludedaccounts']));
+    }
+
+    $inplayarea = rpgstatistic_inplayforums();
+    $inplayforums = rpgstatistic_get_relevant_forums($inplayarea);
+    if (empty($inplayforums)) {
+        return;
+    }
+
+    if (in_array($post['uid'], $excludedaccounts)) {
+        return;
+    }
+
+    if (!in_array($post['fid'], $inplayforums)) {
+        return; 
+    }
+
+    if ($post['visible'] != 1) {
+        return;
+    }
+
+    $counts = rpgstatistic_count_words_characters($post['message']);
+
+    $cache_update = [
+        'allWords' => '-'.$counts['words'],
+        'allCharacters' => '-'.$counts['characters'],
+        'inplayposts' => '-1'
+    ];
+
+    $thread = $db->fetch_array($db->simple_select('threads', 'firstpost', "tid = ".$post['tid']));
+    if ($thread && $thread['firstpost'] === $post['pid']) {
+
+        $cache_update['inplayscenes'] = '-1';
+
+        $query = $db->simple_select('posts', '*', "tid = ".$post['tid']." AND pid != ".$post['pid']);
+        while ($otherPost = $db->fetch_array($query)) {
+            rpgstatistic_handle_post_removal($otherPost);
+        }
+    }
+
+    rpgstatistic_cache_update($cache_update);
+}
+
+// Cache updaten
+function rpgstatistic_cache_update(array $updates) {
+
+    global $cache;
+
+    $rpgstatistic = $cache->read('rpgstatistic');
+    if (!$rpgstatistic || !is_array($rpgstatistic)) {
+        $rpgstatistic = [
+            'inplayscenes' => 0,
+            'inplayposts' => 0,
+            'allCharacters' => 0,
+            'averageCharacters' => 0,
+            'allWords' => 0,
+            'averageWords' => 0,
+        ];
+    }
+
+    foreach ($updates as $key => $change) {
+        if (!isset($rpgstatistic[$key])) {
+            continue;
+        }
+
+        if (is_string($change) && (substr($change, 0, 1) === '+' || substr($change, 0, 1) === '-')) {
+            $rpgstatistic[$key] += $change;
+        } else {
+            $rpgstatistic[$key] = $change;
+        }
+
+        if ($rpgstatistic[$key] < 0) {
+            $rpgstatistic[$key] = 0;
+        }
+    }
+
+    if ($rpgstatistic['inplayposts'] > 0) {
+        $rpgstatistic['averageCharacters'] = round($rpgstatistic['allCharacters']/$rpgstatistic['inplayposts'], 2);
+        $rpgstatistic['averageWords'] = round($rpgstatistic['allWords']/$rpgstatistic['inplayposts'], 2);
+    } else {
+        $rpgstatistic['averageCharacters'] = 0;
+        $rpgstatistic['averageWords'] = 0;
+    }
+
+    $cache->update('rpgstatistic', $rpgstatistic);
+}
+
+// Cache erneuern im ACP
+// Anzeigen (Link)
+function update_rpgstatistic() {
+
+    global $cache;
+    
+    $data = rpgstatistic_rebuild_cache();
+    $cache->update('rpgstatistic', $data);
+}
+
+// Erneuern Funktion
+function rpgstatistic_rebuild_cache() {
+
+    global $mybb, $db;
+
+    $inplayarea = rpgstatistic_inplayforums();
+    $inplayforums = rpgstatistic_get_relevant_forums($inplayarea);
+    if (empty($inplayforums)) {
+        return array(
+            "inplayscenes" => 0,
+            "inplayposts" => 0,
+            "allCharacters" => 0,
+            "averageCharacters" => 0,
+            "allWords" => 0,
+            "averageWords" => 0
+        );
+    }
+    $inplayFids = implode(',', array_map('intval', $inplayforums));
+
+    $excludedaccounts_sql = "";
+    if (!empty($mybb->settings['rpgstatistic_excludedaccounts'])) {
+        $excludedaccounts = $mybb->settings['rpgstatistic_excludedaccounts'];
+        $excludedaccounts_sql = "AND uid NOT IN (".$excludedaccounts.")";
+    }
+    
+    $count_inplayposts = $count_inplayposts = $count_words = $count_character = 0;
+
+    $inplayTids_query = $db->query("SELECT tid FROM ".TABLE_PREFIX."threads t
+    WHERE t.fid IN (".$inplayFids.")
+    AND t.visible = 1
+    ".$excludedaccounts_sql."
+    ");
+
+    $sceneTIDs = [];
+    while ($scenes = $db->fetch_array($inplayTids_query)){
+        $sceneTIDs[] = $scenes['tid']; 
+    } 
+
+    if (empty($sceneTIDs)) { 
+        return array(
+            "inplayscenes" => 0,
+            "inplayposts" => 0,
+            "allCharacters" => 0,
+            "averageCharacters" => 0,
+            "allWords" => 0,
+            "averageWords" => 0
+        );
+    }
+
+    $lastPid = 0;
+    $batchSize = 100;
+
+    do {
+    
+        $query_allinplaypost = $db->query("SELECT p.pid, p.message FROM ".TABLE_PREFIX."posts p
+        WHERE p.tid IN (".implode(",", $sceneTIDs).")
+        AND p.visible = 1    
+        AND p.pid > ".$lastPid."
+        ".$excludedaccounts_sql."
+        ORDER BY p.pid ASC
+        LIMIT ".$batchSize."
+        ");
+
+        $fetched = 0;
+        while ($post = $db->fetch_array($query_allinplaypost)) {
+            $fetched++;
+            $lastPid = $post['pid'];
+            $count_inplayposts++;
+
+            // sichere Zählung
+            $clean = rpgstatistic_count_words_characters($post['message']);
+            $count_words += $clean['words'];
+            $count_character += $clean['characters'];
+        }
+
+    } while ($fetched > 0);
+        
+    // Inplayposts
+    if($count_inplayposts > 0) {
+        $inplayposts = $count_inplayposts;
+    } else {
+        $inplayposts = 0;
+    }
+
+    // Inplayszenen
+    $count_inplayscenes = count($sceneTIDs);
+    if($count_inplayscenes > 0) {
+        $inplayscenes = $count_inplayscenes;
+    } else {
+        $inplayscenes = 0;
+    }
+
+    // Geschriebene Zeichen
+    if($count_character > 0) {
+        $charactersall = $count_character;
+    } else {
+        $charactersall = 0;	
+    }
+    // Durchschnittliche Zeichen
+    if($count_character > 0) {
+        $averageCharacters = round($count_character/$count_inplayposts, 2);
+    } else {
+        $averageCharacters = 0;
+    }
+
+    // Geschriebene Wörter
+    if($count_words > 0) {
+        $wordsall = $count_words;
+    } else {
+        $wordsall = 0;
+    }
+    // Durchschnittliche Wörter
+    if($count_words > 0) {
+        $averageWords = round($count_words/$count_inplayposts, 2);
+    } else {
+        $averageWords = 0;
+    }
+
+    return array(
+        "inplayscenes" => $inplayscenes,
+        "inplayposts" => $inplayposts,
+        "allCharacters" => $charactersall,
+        "averageCharacters" => $averageCharacters,
+        "allWords" => $wordsall,
+        "averageWords" => $averageWords
+    );
 }
 
 #################################
@@ -2543,119 +3052,22 @@ function rpgstatistic_userstatistic() {
 // Inplaystatistik
 function rpgstatistic_inplaystatistic() {
 
-    global $mybb, $db;
+    global $cache;
 
-    $excludedaccounts_sql = "";
-    if (!empty($mybb->settings['rpgstatistic_excludedaccounts'])) {
-        $excludedaccounts = $mybb->settings['rpgstatistic_excludedaccounts'];
-        $excludedaccounts_sql = "AND uid NOT IN (".$excludedaccounts.")";
-    }
-
-    $inplaystatistic_array = [
-        "inplayscenes" => 0,
-        "inplayposts" => 0,
-        "allCharacters" => 0,
-        "averageCharacters" => 0,
-        "allWords" => 0,
-        "averageWords" => 0
-    ];
-
-    $sceneTIDs = [];
-
-    $inplayarea = rpgstatistic_inplayforums();
-    $inplayforums = rpgstatistic_get_relevant_forums($inplayarea);
-    $inplayFids = implode(',', array_map('intval', $inplayforums));
-
-    if ($inplayFids == 0) { 
-        return $inplaystatistic_array;
-    }
-    
-    $count_inplayposts = $count_inplayposts = $count_words = $count_character = 0;
-
-    $inplayTids_query = $db->query("SELECT tid FROM ".TABLE_PREFIX."threads t
-    WHERE t.fid IN (".$inplayFids.")
-    AND t.visible = 1
-    ".$excludedaccounts_sql."
-    ");
-
-    while ($scenes = $db->fetch_array($inplayTids_query)){
-        $sceneTIDs[] = $scenes['tid']; 
-    } 
-
-    if (empty($sceneTIDs)) { 
-        return $inplaystatistic_array;
-    }
-
-    $lastPid = 0;
-    $batchSize = 100;
-
-    do {
-    
-        $query_allinplaypost = $db->query("SELECT p.pid, p.message FROM ".TABLE_PREFIX."posts p
-        WHERE p.tid IN (".implode(",", $sceneTIDs).")
-        AND p.visible = 1    
-        AND p.pid > ".$lastPid."
-        ".$excludedaccounts_sql."
-        ORDER BY p.pid ASC
-        LIMIT ".$batchSize."
-        ");
-
-        $fetched = 0;
-        while ($post = $db->fetch_array($query_allinplaypost)) {
-            $fetched++;
-            $lastPid = $post['pid'];
-            $count_inplayposts++;
-
-            // sichere Zählung
-            $clean = rpgstatistic_count_words_characters($post['message']);
-            $count_words += $clean['words'];
-            $count_character += $clean['characters'];
-        }
-
-    } while ($fetched > 0);
+    $inplayData = $cache->read('rpgstatistic');
         
     // Inplayposts
-    if($count_inplayposts > 0) {
-        $inplayposts_formatted = number_format($count_inplayposts, '0', ',', '.');
-    } else {
-        $inplayposts_formatted = 0;
-    }
-
+    $inplayposts_formatted = number_format($inplayData['inplayposts'], '0', ',', '.');
     // Inplayszenen
-    $count_inplayscenes = count($sceneTIDs);
-    if($count_inplayscenes > 0) {
-        $inplayscenes_formatted = number_format($count_inplayscenes, '0', ',', '.');
-    } else {
-        $inplayscenes_formatted = 0;
-    }
-
+    $inplayscenes_formatted = number_format($inplayData['inplayscenes'], '0', ',', '.');
     // Geschriebene Zeichen
-    if($count_character > 0) {
-        $charactersall_formatted = number_format($count_character, '0', ',', '.');
-    } else {
-        $charactersall_formatted = 0;	
-    }
+    $charactersall_formatted = number_format($inplayData['allCharacters'], '0', ',', '.');
     // Durchschnittliche Zeichen
-    if($count_character > 0) {
-        $averageCharacters = round($count_character/$count_inplayposts, 2);
-        $averageCharacters_formatted = number_format($averageCharacters, 2, ',', '.');
-    } else {
-        $averageCharacters_formatted = 0;
-    }
-
+    $averageCharacters_formatted = number_format($inplayData['averageCharacters'], '0', ',', '.');
     // Geschriebene Wörter
-    if($count_words > 0) {
-        $wordsall_formatted = number_format($count_words, '0', ',', '.');
-    } else {
-        $wordsall_formatted = 0;
-    }
+    $wordsall_formatted = number_format($inplayData['allWords'], '0', ',', '.');
     // Durchschnittliche Wörter
-    if($count_words > 0) {
-        $averageWords =  round($count_words/$count_inplayposts, 2);
-        $averageWords_formatted = number_format($averageWords, 2, ',', '.');
-    } else {
-        $averageWords_formatted = 0;
-    }
+    $averageWords_formatted = number_format($inplayData['averageWords'], '0', ',', '.');
 
     $inplaystatistic_array = [
         "inplayscenes" => $inplayscenes_formatted,
@@ -3670,6 +4082,7 @@ function rpgstatistic_clean_message($message) {
 
 // Zeichen und Wörter zahlen
 function rpgstatistic_count_words_characters($message, $maxLength = 50000) {
+
     $totalWords = 0;
     $totalChars = 0;
 
@@ -3859,6 +4272,23 @@ function rpgstatistic_database() {
             ) ENGINE=InnoDB ".$db->build_create_table_collation().";"
         );
     }
+}
+
+// CACHE 
+function rpgstatistic_cache() {
+
+    global $cache;
+
+    $rpgstatistic = [
+        'inplayscenes' => 0,
+        'inplayposts' => 0,
+        'allCharacters' => 0,
+        'averageCharacters' => 0,
+        'allWords' => 0,
+        'averageWords' => 0,
+    ];
+
+    $cache->update('rpgstatistic', $rpgstatistic);
 }
 
 // EINSTELLUNGEN
@@ -4806,10 +5236,11 @@ function rpgstatistic_stylesheet_update() {
 // UPDATE CHECK
 function rpgstatistic_is_updated(){
 
-    global $db, $mybb;
+    global $db, $mybb, $cache;
 
-	if ($db->table_exists("rpgstatistic_charts")) {
-        return true;
-    }
-    return false;
+    $rpgstatistic = $cache->read('rpgstatistic');    
+    if (!$rpgstatistic || !is_array($rpgstatistic)) {
+        return false;
+    }    
+    return true;
 }
