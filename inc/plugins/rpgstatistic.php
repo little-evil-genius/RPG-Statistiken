@@ -1734,15 +1734,8 @@ function rpgstatistic_admin_update_plugin(&$table) {
         // Cache
         $rpgstatistic = $cache->read('rpgstatistic');
         if (!$rpgstatistic || !is_array($rpgstatistic)) {
-  
-            $rpgstatistic = [
-                'inplayscenes' => 0,
-                'inplayposts' => 0,
-                'allCharacters' => 0,
-                'averageCharacters' => 0,
-                'allWords' => 0,
-                'averageWords' => 0,
-            ];
+            $data = rpgstatistic_rebuild_cache();
+            $cache->update('rpgstatistic', $data);
         }
 
         flash_message($lang->plugins_flash, "success");
