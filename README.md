@@ -29,6 +29,7 @@ Wie alle Statistikwerte sind auch diese Daten vollständig global einsetzbar und
 
 ### Inplay- und Account-Statistiken
 Das Herzstück von RPG-Foren sind die Charaktere und die Beiträge im Inplay. Das Plugin bietet eine einfache und übersichtliche Ausgabe genau dieser Werte. In den Einstellungen können UIDs von Accounts angegeben werden, die bei den Statistiken nicht berücksichtigt werden sollen, beispielsweise Teamaccounts.<br>
+<b>WICHTIG:</b> Nachdem der entsprechende Inplaytracker eingestellt wurde, muss der Cache rpgstatistic erneuert werden im Cache-Manager.
 <br>
 <b>User:innen-Statistik</b><br>
 Es werden die folgenden Werte ausgegeben, wie viele Charaktere insgesamt im Forum angemeldet sind, wie viele Spieler:innen diese Charaktere steuern und wie hoch die durchschnittliche Anzahl an Charakteren pro Spieler:in ist. Auch diese Variablen sind global einsetzbar und können in jedem Template oder jeder PHP-Datei verwendet werden. Die entsprechenden Variablen lauten:<br>
@@ -112,6 +113,9 @@ Das Plugin bringt eine vollständig vorbereitete Statistikseite mit, auf der all
 hinzugefügte Tabelle:
 - rpgstatistic_charts
 - rpgstatistic_variables
+
+# Neuer Cache
+- rpgstatistic
 
 # Neue Sprachdateien
 - deutsch_du/admin/rpgstatistic.lang.php
