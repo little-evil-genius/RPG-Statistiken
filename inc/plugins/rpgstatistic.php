@@ -39,7 +39,7 @@ function rpgstatistic_info()
 		"website"	=> "https://github.com/little-evil-genius/RPG-Statistiken",
 		"author"	=> "little.evil.genius",
 		"authorsite"	=> "https://storming-gates.de/member.php?action=profile&uid=1712",
-		"version"	=> "1.1",
+		"version"	=> "1.1.1",
 		"compatibility" => "18*"
 	);
 }
@@ -3132,7 +3132,7 @@ function rpgstatistic_topstatistic($toplimit = 1) {
     $startOfMonthTimestamp = $startOfMonth->getTimestamp();
 
     // letzter Tag aktueller Monat
-    $lastOfMonth = new DateTime('last day of next month', $timezone);
+    $lastOfMonth = new DateTime('last day of this month', $timezone);
     $lastOfMonth->setTime(23, 59, 59);
     $lastOfMonthTimestamp = $lastOfMonth->getTimestamp();
 
@@ -3147,6 +3147,7 @@ function rpgstatistic_topstatistic($toplimit = 1) {
         LEFT JOIN ".TABLE_PREFIX."users u ON u.uid = p.uid
         WHERE fid IN (".$inplayFids.") 
         AND visible = 1 
+        AND uid != 0
         ".$excludedaccounts_sql."
         GROUP BY main_uid
         ORDER BY post_count DESC 
@@ -3186,6 +3187,7 @@ function rpgstatistic_topstatistic($toplimit = 1) {
         LEFT JOIN ".TABLE_PREFIX."users u ON u.uid = p.uid
         WHERE fid IN (".$inplayFids.") 
         AND visible = 1 
+        AND uid != 0
         ".$excludedaccounts_sql."
         AND dateline BETWEEN ".$startOfMonthTimestamp." AND ".$lastOfMonthTimestamp."
         GROUP BY main_uid
@@ -3227,6 +3229,7 @@ function rpgstatistic_topstatistic($toplimit = 1) {
         LEFT JOIN ".TABLE_PREFIX."users u ON u.uid = p.uid
         WHERE fid IN (".$inplayFids.") 
         AND visible = 1 
+        AND uid != 0
         ".$excludedaccounts_sql."
         AND dateline BETWEEN ".$startTodayTimestamp." AND ".$endTodayTimestamp."
         GROUP BY main_uid
@@ -3265,6 +3268,7 @@ function rpgstatistic_topstatistic($toplimit = 1) {
         $topCharacter_query = $db->query("SELECT uid, COUNT(*) AS post_count FROM ".TABLE_PREFIX."posts p
         WHERE fid IN (".$inplayFids.") 
         AND visible = 1 
+        AND uid != 0
         ".$excludedaccounts_sql."
         GROUP BY uid 
         ORDER BY post_count DESC 
@@ -3307,6 +3311,7 @@ function rpgstatistic_topstatistic($toplimit = 1) {
         $topCharacterMonth_query = $db->query("SELECT uid, COUNT(*) AS post_count FROM ".TABLE_PREFIX."posts p
         WHERE fid IN (".$inplayFids.") 
         AND visible = 1 
+        AND uid != 0
         ".$excludedaccounts_sql."
         AND dateline BETWEEN ".$startOfMonthTimestamp." AND ".$lastOfMonthTimestamp."
         GROUP BY uid 
@@ -3350,6 +3355,7 @@ function rpgstatistic_topstatistic($toplimit = 1) {
         $topCharacterDay_query = $db->query("SELECT uid, COUNT(*) AS post_count FROM ".TABLE_PREFIX."posts p
         WHERE fid IN (".$inplayFids.") 
         AND visible = 1 
+        AND uid != 0
         ".$excludedaccounts_sql."
         AND dateline BETWEEN ".$startTodayTimestamp." AND ".$endTodayTimestamp."
         GROUP BY uid 
