@@ -39,7 +39,7 @@ function rpgstatistic_info()
 		"website"	=> "https://github.com/little-evil-genius/RPG-Statistiken",
 		"author"	=> "little.evil.genius",
 		"authorsite"	=> "https://storming-gates.de/member.php?action=profile&uid=1712",
-		"version"	=> "1.1.1",
+		"version"	=> "1.1.2",
 		"compatibility" => "18*"
 	);
 }
@@ -1770,7 +1770,7 @@ function rpgstatistic_mybbArray() {
 // Global ausgeben
 function rpgstatistic_global() {
 
-    global $mybb, $cache, $lang, $templates, $characters_bit, $rpgstatistic_wob, $rpgstatistic_overviewtable, $overviewtableBit;
+    global $mybb, $cache, $lang, $templates, $wobcharacters_bit, $rpgstatistic_wob, $rpgstatistic_overviewtable, $overviewtableBit;
     
     $lang->load('rpgstatistic');
 
@@ -1798,7 +1798,7 @@ function rpgstatistic_global() {
         if ($mybb->settings['rpgstatistic_wobUser_guest'] == 0 && $mybb->user['uid'] == 0) {
             $rpgstatistic_wob = "";
         } else {
-            $characters_bit = rpgstatistic_wob();
+            $wobcharacters_bit = rpgstatistic_wob();
             eval("\$rpgstatistic_wob = \"".$templates->get("rpgstatistic_wob")."\";");
         }
     }
@@ -1813,7 +1813,7 @@ function rpgstatistic_global() {
 // WoB Forumbit
 function rpgstatistic_forumbits(&$forum) {
 
-    global $db, $mybb, $lang, $templates, $theme, $characters_bit;
+    global $db, $mybb, $lang, $templates, $theme, $wobcharacters_bit;
 
     if ($forum['fid'] != $mybb->settings['rpgstatistic_wobUser_forumbit'] || $mybb->settings['rpgstatistic_wobUser'] == 0) {
         $forum['rpgstatistic_wob'] = "";
@@ -1827,7 +1827,7 @@ function rpgstatistic_forumbits(&$forum) {
 
     $lang->load('rpgstatistic');
     
-    $characters_bit = rpgstatistic_wob();
+    $wobcharacters_bit = rpgstatistic_wob();
     eval("\$forum['rpgstatistic_wob'] = \"".$templates->get("rpgstatistic_wob")."\";");
 }
 
@@ -3410,7 +3410,7 @@ function rpgstatistic_topstatistic($toplimit = 1) {
 // zuletzt gewobbte Charaktere
 function rpgstatistic_wob() {
 
-    global $mybb, $db, $theme, $templates, $characters_bit;
+    global $mybb, $db, $theme, $templates, $wobcharacters_bit;
 
     if ($mybb->settings['rpgstatistic_wobUser_guest'] == 0 && $mybb->user['uid'] == 0) {
         return;
@@ -3434,7 +3434,7 @@ function rpgstatistic_wob() {
     LIMIT ".$itemslimit."
     ");
 
-    $characters_bit = "";
+    $wobcharacters_bit = "";
     while ($wob = $db->fetch_array($wobaccounts_query)) {
 
         // Leer laufen lassen
@@ -3492,10 +3492,10 @@ function rpgstatistic_wob() {
             }
         }   
 
-        eval("\$characters_bit .= \"".$templates->get("rpgstatistic_wob_bit")."\";");
+        eval("\$wobcharacters_bit .= \"".$templates->get("rpgstatistic_wob_bit")."\";");
     }
 
-    return $characters_bit;
+    return $wobcharacters_bit;
 }
 
 // neuste Themen/Beiträge
@@ -4911,7 +4911,7 @@ function rpgstatistic_templates($mode = '') {
         'template'	=> $db->escape_string('<div class="rpgstatistic_wob">
         <div class="rpgstatistic_wob-headline">{$lang->rpgstatistic_wob}</div>
         <div class="rpgstatistic_wobcharas">
-        {$characters_bit}
+        {$wobcharacters_bit}
         </div>
         </div>
         <br/>'),
@@ -5243,3 +5243,4 @@ function rpgstatistic_is_updated(){
     }    
     return true;
 }
+
