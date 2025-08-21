@@ -39,7 +39,7 @@ function rpgstatistic_info()
 		"website"	=> "https://github.com/little-evil-genius/RPG-Statistiken",
 		"author"	=> "little.evil.genius",
 		"authorsite"	=> "https://storming-gates.de/member.php?action=profile&uid=1712",
-		"version"	=> "1.1.2",
+		"version"	=> "1.1.1",
 		"compatibility" => "18*"
 	);
 }
@@ -4953,6 +4953,9 @@ function rpgstatistic_templates($mode = '') {
                 $db->insert_query("templates", $template);
             }
         }
+
+        require MYBB_ROOT."/inc/adminfunctions_templates.php";
+        find_replace_templatesets('rpgstatistic_wob','#'.preg_quote('{$characters_bit}').'#','{$wobcharacters_bit}');
 	
     } else {
         foreach ($templates as $template) {
@@ -5233,14 +5236,26 @@ function rpgstatistic_stylesheet_update() {
 }
 
 // UPDATE CHECK
-function rpgstatistic_is_updated(){
+function rpgstatistic_is_updated() {
 
-    global $db, $mybb, $cache;
+    global $db, $cache;
 
-    $rpgstatistic = $cache->read('rpgstatistic');    
-    if (!$rpgstatistic || !is_array($rpgstatistic)) {
-        return false;
-    }    
-    return true;
+    // Template suchen: entweder global (sid = -2) oder themespezifisch
+    $query = $db->simple_select(
+        "templates",
+        "template",
+        "title='rpgstatistic_wob'"
+    );
+
+    $found = false;
+
+    while ($tpl = $db->fetch_array($query)) {
+        if (strpos($tpl['template'], '{$wobcharacters_bit}') !== false) {
+            $found = true;
+            break;
+        }
+    }
+
+    return $found;
 }
 
