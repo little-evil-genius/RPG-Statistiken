@@ -39,7 +39,7 @@ function rpgstatistic_info()
 		"website"	=> "https://github.com/little-evil-genius/RPG-Statistiken",
 		"author"	=> "little.evil.genius",
 		"authorsite"	=> "https://storming-gates.de/member.php?action=profile&uid=1712",
-		"version"	=> "1.1.1",
+		"version"	=> "1.1.2",
 		"compatibility" => "18*"
 	);
 }
@@ -5258,4 +5258,5 @@ function rpgstatistic_is_updated() {
 
     return $found;
 }
+
 
