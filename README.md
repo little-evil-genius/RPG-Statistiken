@@ -108,11 +108,15 @@ Das Plugin bringt eine vollständig vorbereitete Statistikseite mit, auf der all
 # Vorrausetzung
 - Das ACP Modul <a href="https://github.com/little-evil-genius/rpgstuff_modul" target="_blank">RPG Stuff</a> <b>muss</b> vorhanden sein.
 - Der <a href="https://doylecc.altervista.org/bb/downloads.php?dlid=26&cat=2" target="_blank">Accountswitcher</a> von doylecc <b>muss</b> installiert sein.
+- Die <a href="https://github.com/frostschutz/MyBB-PluginLibrary" target="_blank">PluginLibrary for MyBB</a> von frostschutz <b>muss</b> installiert sein.
 
 # Datenbank-Änderungen
 hinzugefügte Tabelle:
 - rpgstatistic_charts
 - rpgstatistic_variables
+
+# Änderung der Core-Datei
+- inc/class_core.php
 
 # Neuer Cache
 - rpgstatistic
