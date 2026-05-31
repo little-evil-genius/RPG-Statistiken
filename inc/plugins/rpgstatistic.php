@@ -14,6 +14,8 @@ $plugins->add_hook('admin_rpgstuff_menu', 'rpgstatistic_admin_rpgstuff_menu');
 $plugins->add_hook('admin_load', 'rpgstatistic_admin_manage');
 $plugins->add_hook('admin_rpgstuff_update_stylesheet', 'rpgstatistic_admin_update_stylesheet');
 $plugins->add_hook('admin_rpgstuff_update_plugin', 'rpgstatistic_admin_update_plugin');
+$plugins->add_hook("admin_rpgstuff_update_core", "rpgstatistic_admin_update_core");
+$plugins->add_hook('admin_load', 'rpgstatistic_integrity_check'); 
 $plugins->add_hook('global_start', 'rpgstatistic_mybbArray', 0);
 $plugins->add_hook('global_intermediate', 'rpgstatistic_global');
 $plugins->add_hook('build_forumbits_forum', 'rpgstatistic_forumbits');
@@ -39,7 +41,7 @@ function rpgstatistic_info()
 		"website"	=> "https://github.com/little-evil-genius/RPG-Statistiken",
 		"author"	=> "little.evil.genius",
 		"authorsite"	=> "https://storming-gates.de/member.php?action=profile&uid=1712",
-		"version"	=> "1.1.2",
+		"version"	=> "1.1.3",
 		"compatibility" => "18*"
 	);
 }
@@ -155,6 +157,19 @@ function rpgstatistic_uninstall() {
 // Diese Funktion wird aufgerufen, wenn das Plugin aktiviert wird.
 function rpgstatistic_activate() {
 
+    global $lang;
+
+    // SPRACHDATEI
+    $lang->load("rpgstatistic");
+
+    if(!file_exists(PLUGINLIBRARY)) {
+        flash_message($lang->rpgstatistic_error_pluginlibrary, "error");
+        admin_redirect("index.php?module=config-plugins");
+    }
+
+    // PLUGINLIBRARY
+    rpgstatistic_pluginlibrary();
+
     // VARIABLEN EINFÜGEN
     require MYBB_ROOT."/inc/adminfunctions_templates.php";
     find_replace_templatesets('headerinclude','#'.preg_quote('{$stylesheets}').'#','<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script> {$stylesheets}');
@@ -164,6 +179,10 @@ function rpgstatistic_activate() {
  
 // Diese Funktion wird aufgerufen, wenn das Plugin deaktiviert wird.
 function rpgstatistic_deactivate() {
+
+    require_once PLUGINLIBRARY;
+    $PL or $PL = new PluginLibrary();
+    $PL->edit_core('rpgstatistic', 'inc/class_core.php', [], true);
 
     // VARIABLEN ENTFERNEN
     require MYBB_ROOT."/inc/adminfunctions_templates.php";
@@ -1752,6 +1771,37 @@ function rpgstatistic_admin_update_plugin(&$table) {
         $table->construct_cell($lang->plugins_actual, array('class' => 'align_center'));
     } else {
         $table->construct_cell("<a href=\"index.php?module=rpgstuff-plugin_updates&action=add_update&plugin=rpgstatistic\">".$lang->plugins_update."</a>", array('class' => 'align_center'));
+    }
+    
+    $table->construct_row();
+}
+
+// Core Update
+function rpgstatistic_admin_update_core(&$table) {
+
+    global $db, $mybb, $lang, $theme;
+	
+    $lang->load('rpgstuff_core_updates');
+
+    // UPDATE
+    if ($mybb->input['action'] == 'add_core' AND $mybb->get_input('plugin') == "rpgstatistic") {
+
+        rpgstatistic_pluginlibrary();
+
+        flash_message($lang->core_flash, "success");
+        admin_redirect("index.php?module=rpgstuff-core_updates");
+    }
+
+    // Zelle mit dem Namen des Themes
+    $table->construct_cell("<b>".htmlspecialchars_uni("RPG-Statistiken")."</b>", array('width' => '70%'));
+
+    // Überprüfen, ob Update erledigt
+    $update_check = rpgstatistic_is_updated_core();
+
+    if (!empty($update_check)) {
+        $table->construct_cell($lang->core_actual, array('class' => 'align_center'));
+    } else {
+        $table->construct_cell("<a href=\"index.php?module=rpgstuff-core_updates&action=add_core&plugin=rpgstatistic\">".$lang->core_update."</a>", array('class' => 'align_center'));
     }
     
     $table->construct_row();
@@ -4230,9 +4280,9 @@ function rpgstatistic_playername($uid){
     return $playerName;
 }
 
-#######################################
-### DATABASE | SETTINGS | TEMPLATES ###
-#######################################
+############################################################################
+### DATABASE | CACHE | PLUGINLIBRARY | SETTINGS | TEMPLATES | STYLESHEET ###
+############################################################################
 
 // DATENBANKTABELLEN
 function rpgstatistic_database() {
@@ -4288,6 +4338,24 @@ function rpgstatistic_cache() {
     ];
 
     $cache->update('rpgstatistic', $rpgstatistic);
+}
+
+// PLUGINLIBRARY
+function rpgstatistic_pluginlibrary() {
+
+    global $PL;
+
+    require_once PLUGINLIBRARY;
+    $PL or $PL = new PluginLibrary();
+    $PL->edit_core(
+        'rpgstatistic',
+        'inc/class_core.php',
+        array(
+            'search' => 'public $session = array();',
+            'after' => 'public $rpgstatistic = array();'
+        ),
+        true
+    );
 }
 
 // EINSTELLUNGEN
@@ -5259,4 +5327,38 @@ function rpgstatistic_is_updated() {
     return $found;
 }
 
+######################################
+### CORE ÄNDERUNGEN - MyBB UPDATES ###
+######################################
+function rpgstatistic_is_updated_core() {
 
+    $file = MYBB_ROOT . 'inc/class_core.php';
+    if(!file_exists($file)) {
+        return false;
+    }
+
+    $contents = file_get_contents($file);
+
+    $missing = true;
+
+    if(strpos($contents, '$rpgstatistic') === false) {
+        $missing = false;
+    }
+
+    return $missing;
+}
+
+function rpgstatistic_integrity_check() {
+
+    global $lang;
+
+    $lang->load("rpgstatistic");
+
+    if(!defined('IN_ADMINCP')) {
+        return;
+    }
+
+    if(!rpgstatistic_is_updated_core()) {
+        flash_message($lang->rpgstatistic_error_integritycheck, 'error');
+    }
+}
