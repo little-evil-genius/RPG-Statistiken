@@ -1,6 +1,7 @@
 <?php
 $l['rpgstatistic_error_rpgstuff'] = "Das ACP Modul <a href=\"https://github.com/little-evil-genius/rpgstuff_modul\" target=\"_blank\">\"RPG Stuff\"</a> muss vorhanden sein!";
 $l['rpgstatistic_error_accountswitcher'] = "Das Plugin <a href=\"http://doylecc.altervista.org/bb/downloads.php?dlid=26&cat=2\" target=\"_blank\">\"Enhanced Account Switcher\"</a> muss installiert sein!";
+$l['rpgstatistic_error_integritycheck'] = "Die Core-Änderungen für das Plugin 'RPG-Statistiken' fehlen - dies passiert häufig nach einem MyBB-Update. Die Core-Änderungen können erneut im Modul RPG Stuff hinzufügt werden.";
 
 $l['rpgstatistic_permission'] = "Kann die Diagramme und Variabeln für die RPG-Statistiken verwalten?";
 
