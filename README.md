@@ -415,6 +415,7 @@ Nach einem MyBB Upgrade fehlt der Stylesheets im Masterstyle? Im ACP Modul "RPG 
 
         .rpgstatistic_page_chart {
         width: 50%;
+}
 ```
 
 # Benutzergruppen-Berechtigungen setzen
