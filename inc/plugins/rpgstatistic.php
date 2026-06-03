@@ -5,6 +5,10 @@ if(!defined("IN_MYBB"))
 	die("Direct initialization of this file is not allowed.<br /><br />Please make sure IN_MYBB is defined.");
 }
 
+if(!defined("PLUGINLIBRARY")) {
+    define("PLUGINLIBRARY", MYBB_ROOT."inc/plugins/pluginlibrary.php");
+}
+
 // HOOKS
 $plugins->add_hook('admin_config_settings_change', 'rpgstatistic_settings_change');
 $plugins->add_hook('admin_settings_print_peekers', 'rpgstatistic_settings_peek');
@@ -41,7 +45,7 @@ function rpgstatistic_info()
 		"website"	=> "https://github.com/little-evil-genius/RPG-Statistiken",
 		"author"	=> "little.evil.genius",
 		"authorsite"	=> "https://storming-gates.de/member.php?action=profile&uid=1712",
-		"version"	=> "1.1.3",
+		"version"	=> "1.1.4",
 		"compatibility" => "18*"
 	);
 }
